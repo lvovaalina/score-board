@@ -91,7 +91,7 @@ func startGameCmdHandler() {
 	}
 
 	errStart := StartGame(strings.TrimSuffix(homeTeamName, "\n"), strings.TrimSuffix(awayTeamName, "\n"))
-	if err != nil {
+	if errStart != nil {
 		fmt.Println("Game start faled: ", errStart)
 		return
 	}
@@ -109,7 +109,11 @@ func FinishGameCmdHandler() {
 
 	positionNumber, err := helpers.ParseToInt(strings.TrimSuffix(positionString, "\n"))
 	if err == nil {
-		FinishGame(positionNumber)
+		finishErr := FinishGame(positionNumber)
+		if finishErr != nil {
+			fmt.Println("Finish game failed: ", finishErr)
+			return
+		}
 		fmt.Println("Game finished succesfully!")
 	}
 }
@@ -151,7 +155,11 @@ func UpdateScoreCmdHandler() {
 		return
 	}
 
-	UpdateScore(positionNumber, homeTeamScore, awayTeamScore)
+	updErr := UpdateScore(positionNumber, homeTeamScore, awayTeamScore)
+	if updErr != nil {
+		fmt.Println("Game score update failed: ", updErr)
+		return
+	}
 	fmt.Println("Game updated succesfully!")
 }
 
