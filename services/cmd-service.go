@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
+
+	"github.com/lvovaalina/score-board/helpers"
 )
 
 type Command string
@@ -13,24 +16,13 @@ const (
 	StartGameCmd   Command = "start"
 	UpdateScoreCmd         = "update"
 	FinishGameCmd          = "finish"
+	ShowBoardCmd           = "show"
 	QuitCmd                = "quit"
 )
 
-func (c Command) isCommand() bool {
-	switch c {
-	case StartGameCmd:
-		return true
-	case UpdateScoreCmd:
-		return true
-	case FinishGameCmd:
-		return true
-	case QuitCmd:
-		return true
-	}
-	return false
-}
-
 var reader *bufio.Reader
+var wg sync.WaitGroup
+var isTaskExecuting bool
 
 func StartBoardCmd() {
 
@@ -39,39 +31,130 @@ func StartBoardCmd() {
 		"Start game: " + StartGameCmd + "\n" +
 		"Update score: " + UpdateScoreCmd + "\n" +
 		"Finish game: " + FinishGameCmd + "\n" +
-		"Quit: " + QuitCmd)
+		"Quit: " + QuitCmd + "\n\n\n")
 
-	command := make(chan string)
-
-	go func(in chan string) {
-		reader = bufio.NewReader(os.Stdin)
-		for {
-			s, err := reader.ReadString('\n')
-			if err != nil {
-				close(in)
-				fmt.Println("Error in read string", err)
-			}
-			in <- s
-		}
-	}(command)
-
+	reader = bufio.NewReader(os.Stdin)
 exit:
 	for {
-		select {
-		case in := <-command:
-			in = strings.TrimSpace(in)
-			if in == QuitCmd {
-				break exit
-			}
-			fmt.Println("Read from stdin: ", in)
+		fmt.Print(">")
+		command, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error in read string", err)
 		}
+		command = strings.TrimSpace(command)
+		if command == QuitCmd {
+			break exit
+		}
+		ExecuteCommand(command)
 	}
-
-	fmt.Println("Thanks for using Football World Cup Score Board! Have a nice day!")
 }
 
 func ExecuteCommand(commandStr string) {
-	if !(Command(strings.TrimSuffix(commandStr, "\n")).isCommand()) {
+	Command(strings.TrimSuffix(commandStr, "\n")).Execute()
+	isTaskExecuting = false
+}
+
+func (c Command) Execute() {
+	switch c {
+	case StartGameCmd:
+		startGameCmdHandler()
+		return
+	case UpdateScoreCmd:
+		UpdateScoreCmdHandler()
+		return
+	case FinishGameCmd:
+		FinishGameCmdHandler()
+		return
+	case ShowBoardCmd:
+		ShowBoardCmdHandler()
+	case QuitCmd:
+		return
+	default:
 		fmt.Println("Unknown command")
+		return
 	}
+}
+
+func startGameCmdHandler() {
+	fmt.Print(">Home team name: ")
+	homeTeamName, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading home team name", err)
+		return
+	}
+
+	fmt.Print(">Away team name: ")
+	awayTeamName, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading away team name", err)
+		return
+	}
+
+	errStart := StartGame(strings.TrimSuffix(homeTeamName, "\n"), strings.TrimSuffix(awayTeamName, "\n"))
+	if err != nil {
+		fmt.Println("Game start faled: ", errStart)
+		return
+	}
+
+	fmt.Println("Game started succesfully!")
+}
+
+func FinishGameCmdHandler() {
+	fmt.Print(">Game to finish position: ")
+	positionString, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading game position", err)
+		return
+	}
+
+	positionNumber, err := helpers.ParseToInt(strings.TrimSuffix(positionString, "\n"))
+	if err == nil {
+		FinishGame(positionNumber)
+		fmt.Println("Game finished succesfully!")
+	}
+}
+
+func UpdateScoreCmdHandler() {
+	fmt.Print(">Game to update position: ")
+
+	positionString, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading game position", err)
+		return
+	}
+
+	positionNumber, err := helpers.ParseToInt(strings.TrimSuffix(positionString, "\n"))
+	if err != nil {
+		return
+	}
+
+	fmt.Print(">Home team score: ")
+	homeTeamScoreString, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading team score", err)
+		return
+	}
+
+	homeTeamScore, err := helpers.ParseToInt(strings.TrimSuffix(homeTeamScoreString, "\n"))
+	if err != nil {
+		return
+	}
+
+	fmt.Print(">Home team score: ")
+	awayTeamScoreString, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading team score", err)
+		return
+	}
+	awayTeamScore, err := helpers.ParseToInt(strings.TrimSuffix(awayTeamScoreString, "\n"))
+	if err != nil {
+		return
+	}
+
+	UpdateScore(positionNumber, homeTeamScore, awayTeamScore)
+	fmt.Println("Game updated succesfully!")
+}
+
+func ShowBoardCmdHandler() {
+	ShowBoard()
 }

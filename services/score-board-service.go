@@ -30,7 +30,7 @@ func StartGame(homeTeamName string, awayTeamName string) (err error) {
 	})
 
 	if helpers.Contains(isAnyTeamAlreadyPlaingArr, true) {
-		return errors.New("Team already plaing!")
+		return errors.New("Team(s) already plaing!")
 	}
 
 	board.Games = append(board.Games, models.Game{
