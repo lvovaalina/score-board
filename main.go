@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/lvovaalina/score-board/services"
+)
 
 func main() {
-	fmt.Println("Welcome to Football World Cup Score Board!")
+	services.StartBoardCmd()
 }
