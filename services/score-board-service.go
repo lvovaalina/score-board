@@ -57,7 +57,7 @@ func UpdateScore(gamePositionInBoard int, newHomeTeamScore int, newAwayTeamScore
 		return errors.New("No game with this position!")
 	}
 
-	game := &board.Games[gamePositionInBoard]
+	game := &board.Games[gamePositionInBoard-1]
 	game.HomeTeam.Score = newHomeTeamScore
 	game.AwayTeam.Score = newAwayTeamScore
 	game.TotalScore = newHomeTeamScore + newAwayTeamScore
