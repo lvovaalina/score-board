@@ -47,18 +47,22 @@ func StartGame(homeTeamName string, awayTeamName string) (err error) {
 	})
 
 	// sort games upon add to use game id for update and finish game
-	sort.SliceStable(board.Games, func(i int, j int) bool {
-		var sortedByTotalScore, sortedByDate bool
+	sortGames()
 
-		sortedByTotalScore = board.Games[i].TotalScore > board.Games[j].TotalScore
+	return
+}
 
-		if board.Games[i].TotalScore == board.Games[j].TotalScore {
-			sortedByDate = board.Games[i].CreatedDateTime.Before(board.Games[j].CreatedDateTime)
-			return sortedByDate
-		}
+func UpdateScore(gamePositionInBoard int, newHomeTeamScore int, newAwayTeamScore int) (err error) {
+	if gamePositionInBoard <= 0 || gamePositionInBoard > len(board.Games) {
+		return errors.New("No game with this position!")
+	}
 
-		return sortedByTotalScore
-	})
+	game := &board.Games[gamePositionInBoard]
+	game.HomeTeam.Score = newHomeTeamScore
+	game.AwayTeam.Score = newAwayTeamScore
+	game.TotalScore = newHomeTeamScore + newAwayTeamScore
+
+	sortGames()
 
 	return
 }
@@ -76,4 +80,19 @@ func FinishGame(gamePositionInBoard int) (err error) {
 
 func ShowBoard() {
 	fmt.Println(board)
+}
+
+func sortGames() {
+	sort.SliceStable(board.Games, func(i int, j int) bool {
+		var sortedByTotalScore, sortedByDate bool
+
+		sortedByTotalScore = board.Games[i].TotalScore > board.Games[j].TotalScore
+
+		if board.Games[i].TotalScore == board.Games[j].TotalScore {
+			sortedByDate = board.Games[i].CreatedDateTime.Before(board.Games[j].CreatedDateTime)
+			return sortedByDate
+		}
+
+		return sortedByTotalScore
+	})
 }
