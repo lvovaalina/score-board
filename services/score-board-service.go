@@ -3,7 +3,9 @@ package services
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/lvovaalina/score-board/helpers"
 	"github.com/lvovaalina/score-board/models"
@@ -40,9 +42,35 @@ func StartGame(homeTeamName string, awayTeamName string) (err error) {
 			Name:  awayTeamName,
 			Score: initialTeamScore,
 		},
-		TotalScore: initialTeamScore,
+		TotalScore:      initialTeamScore,
+		CreatedDateTime: time.Now(),
 	})
 
+	// sort games upon add to use game id for update and finish game
+	sort.SliceStable(board.Games, func(i int, j int) bool {
+		var sortedByTotalScore, sortedByDate bool
+
+		sortedByTotalScore = board.Games[i].TotalScore > board.Games[j].TotalScore
+
+		if board.Games[i].TotalScore == board.Games[j].TotalScore {
+			sortedByDate = board.Games[i].CreatedDateTime.Before(board.Games[j].CreatedDateTime)
+			return sortedByDate
+		}
+
+		return sortedByTotalScore
+	})
+
+	return
+}
+
+func FinishGame(gamePositionInBoard int) (err error) {
+	if gamePositionInBoard <= 0 || gamePositionInBoard > len(board.Games) {
+		return errors.New("No game with this position!")
+	}
+
+	games := helpers.RemoveFromSliceByIndex(board.Games, gamePositionInBoard-1)
+	board.Games = make([]models.Game, 0)
+	board.Games = append(board.Games, games...)
 	return
 }
 
