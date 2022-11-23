@@ -2,8 +2,10 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
+	"github.com/lvovaalina/score-board/helpers"
 	"github.com/lvovaalina/score-board/models"
 )
 
@@ -20,6 +22,15 @@ func StartGame(homeTeamName string, awayTeamName string) (err error) {
 		return errors.New("Away team name cannot be the same as home team name!")
 	}
 
+	var isAnyTeamAlreadyPlaingArr []bool = helpers.Map(board.Games, func(game models.Game) bool {
+		return (game.AwayTeam.Name == homeTeamName || (game.HomeTeam.Name == homeTeamName) ||
+			(game.AwayTeam.Name == awayTeamName) || (game.HomeTeam.Name == awayTeamName))
+	})
+
+	if helpers.Contains(isAnyTeamAlreadyPlaingArr, true) {
+		return errors.New("Team already plaing!")
+	}
+
 	board.Games = append(board.Games, models.Game{
 		HomeTeam: models.Team{
 			Name:  homeTeamName,
@@ -33,4 +44,8 @@ func StartGame(homeTeamName string, awayTeamName string) (err error) {
 	})
 
 	return
+}
+
+func ShowBoard() {
+	fmt.Println(board)
 }
