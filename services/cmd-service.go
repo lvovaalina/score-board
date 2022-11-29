@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/lvovaalina/score-board/helpers"
 )
@@ -21,7 +20,6 @@ const (
 )
 
 var reader *bufio.Reader
-var wg sync.WaitGroup
 var isTaskExecuting bool
 
 func StartBoardCmd() {

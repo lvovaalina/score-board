@@ -1,7 +1,5 @@
 package helpers
 
-type mapf func(interface{}) interface{}
-
 func Map[T, U any](data []T, f func(T) U) []U {
 
 	res := make([]U, 0, len(data))
